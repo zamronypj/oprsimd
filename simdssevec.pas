@@ -10,6 +10,7 @@ unit simdssevec;
 interface
 
 {$MODE OBJFPC}
+{$ALIGN 16}
 
 uses
     vectypes;
