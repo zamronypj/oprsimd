@@ -59,7 +59,20 @@ uses
      can be written as
      res := v1 - v2
     --------------------------------------}
-    operator - (const v1:TVector; const v2:TVector) res : TVector;
+    operator - (const v1 : TVector; const v2 : TVector) res : TVector;
+
+    {-------------------------------------
+     Multiply a vector with scalar using SSE instruction
+     -------------------------------------
+     for example:
+     res.x = v1.x * scalar
+     res.y = v1.y * scalar
+     res.z = v1.z * scalar
+     res.w = v1.w * scalar
+     can be written as
+     res := v1 * scalar
+    --------------------------------------}
+    operator * (const v1 : TVector; const scalar : single) res : TVector;
 
 implementation
 
@@ -101,23 +114,23 @@ implementation
      -------------------------------------
      res.x = v1.x + v2.x
      res.y = v1.y + v2.y
-     rest.z = v1.z + v2.z
+     res.z = v1.z + v2.z
      res.w = v1.w + v2.w
      -------------------------------------
      input:
      For x86-64 architecture
-     vect1 and vect2 value will be passed
+     vt1 and v2 value will be passed
      in xmm0, xmm1, xmm2, xmm3 in following order
-     xmm0 = [ vect1.x, vec1.y, (not used), (not used)]
-     xmm1 = [ vect1.z, vec1.w, (not used), (not used)]
-     xmm2 = [ vect2.x, vec2.y, (not used), (not used)]
-     xmm3 = [ vect2.z, vec2.w, (not used), [not used]]
+     xmm0 = [ v1.x, v1.y, (not used), (not used)]
+     xmm1 = [ v1.z, v1.w, (not used), (not used)]
+     xmm2 = [ v2.x, v2.y, (not used), (not used)]
+     xmm3 = [ v2.z, v2.w, (not used), [not used]]
     --------------------------------------
      output:
      result will be stored in xmm0 and xmm1
      register with following order
-     xmm0 = [ result.x, result.y, [not used], [not used]]
-     xmm1 = [ result.z, result.w, [not used], [not used]]
+     xmm0 = [ res.x, res.y, [not used], [not used]]
+     xmm1 = [ res.z, res.w, [not used], [not used]]
     --------------------------------------}
     operator + (const v1:TVector; const v2:TVector) res : TVector; assembler;
     asm
@@ -186,4 +199,48 @@ implementation
         movhlps xmm1, xmm0
     end;
 
+    {-------------------------------------
+     multiply a vector with a scalar using
+     SSE instruction
+     --------------------------------------
+     res.x = v1.x * scalar
+     res.y = v1.y * scalar
+     res.z = v1.z * scalar
+     res.w = v1.w * scalar
+     -------------------------------------
+     input:
+     For x86-64 architecture
+     v1 and scalar value will be passed
+     in xmm0, xmm1, xmm2 in following order
+     xmm0 = [ v1.x, v1.y, (not used), (not used)]
+     xmm1 = [ v1.z, v1.w, (not used), (not used)]
+     xmm2 = [ scalar, (not used), (not used), (not used)]
+     --------------------------------------
+     output:
+     result will be stored in xmm0 and xmm1
+     register with following order
+     xmm0 = [ res.x, res.y, [not used], [not used]]
+     xmm1 = [ res.z, res.w, [not used], [not used]]
+    --------------------------------------}
+    operator * (const v1 : TVector; const scalar : single) res : TVector; assembler;
+    asm
+        //copy low quadword of xmm1 to high quadword of xmm0
+        //xmm0 = {v1.x, v1.y, v1.z, v1.w}
+        movlhps xmm0, xmm1
+
+        //shuffle xmm2 so that
+        //xmm2 = {scalar, scalar, scalar, scalar}
+        shufps xmm2, xmm2, 00000000b
+
+        //multiply xmm0 and xmm2
+        //xmm0 = {v1.x * scalar,
+        //        v1.y * scalar,
+        //        v1.z * scalar,
+        //        v1.w * scalar}
+        mulps xmm0, xmm2
+
+        //copy high quadword of xmm0 to low quadword of xmm1
+        //xmm1 = {res.z, res.w, [not used], [not used]}
+        movhlps xmm1, xmm0
+    end;
 end.
