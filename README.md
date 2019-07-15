@@ -81,7 +81,7 @@ begin
 end.
 ```
 
-### Calculate dot product of two vector
+### Calculate dot product of two vectors
 
 ```
 program simd_vector_dot;
@@ -112,7 +112,7 @@ begin
 end.
 ```
 
-### Calculate cross product of two vector
+### Calculate cross product of two vectors
 
 ```
 program simd_vector_cross;
