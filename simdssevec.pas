@@ -229,7 +229,7 @@ implementation
         //xmm2 = {v2.x, v2.y, v2.z, v2.w}
         movlhps xmm2, xmm3
 
-        //add xmm0 and xmm2
+        //subtract xmm0 and xmm2
         //xmm0 = {v1.x - v2.x,
         //        v1.y - v2.y,
         //        v1.z - v2.z,
@@ -432,59 +432,59 @@ implementation
     operator ** (const v1 : TVector; const v2 : TVector) : TVector; assembler;
     asm
         //copy low quadword of xmm1 to high quadword of xmm0
-        //xmm0 = {vect1.x, vect1.y, vect1.z, vect1.w}
+        //xmm0 = {v1.x, v1.y, v1.z, v1.w}
         movlhps xmm0, xmm1
 
         //copy low quadword of xmm3 to high quadword of xmm2
-        //xmm2 = {vect2.x, vect2.y, vect2.z, vect2.w}
+        //xmm2 = {v2.x, v2.y, v2.z, v2.w}
         movlhps xmm2, xmm3
 
-        //xmm1 = {vect1.x, vect1.y, vect1.z, vect1.w}
-        //xmm4 = {vect1.x, vect1.y, vect1.z, vect1.w}
+        //xmm1 = {v1.x, v1.y, v1.z, v1.w}
+        //xmm4 = {v1.x, v1.y, v1.z, v1.w}
         movaps xmm1, xmm0
         movaps xmm4, xmm0
 
-        //xmm3 = {vect2.x, vect2.y, vect2.z, vect2.w}
-        //xmm5 = {vect2.x, vect2.y, vect2.z, vect2.w}
+        //xmm3 = {v2.x, v2.y, v2.z, v2.w}
+        //xmm5 = {v2.x, v2.y, v2.z, v2.w}
         movaps xmm3, xmm2
         movaps xmm5, xmm2
 
-        //xmm1 = {vect1.y, vect1.z, vect1.x, vect1.w}
-        //xmm4 = {vect1.z, vect1.x, vect1.y, vect1.w}
+        //xmm1 = {v1.y, v1.z, v1.x, v1.w}
+        //xmm4 = {v1.z, v1.x, v1.y, v1.w}
         shufps xmm1, xmm0, 11001001b
         shufps xmm4, xmm0, 11010010b
 
-        //xmm3 = {vect2.z, vect2.x, vect2.y, vect2.w}
-        //xmm5 = {vect2.y, vect2.z, vect2.x, vect2.w}
+        //xmm3 = {v2.z, v2.x, v2.y, v2.w}
+        //xmm5 = {v2.y, v2.z, v2.x, v2.w}
         shufps xmm3, xmm2, 11010010b
         shufps xmm5, xmm2, 11001001b
 
         //before multiplication
-        //xmm1 = {vect1.y, vect1.z, vect1.x, vect1.w}
-        //xmm3 = {vect2.z, vect2.x, vect2.y, vect2.w}
+        //xmm1 = {v1.y, v1.z, v1.x, v1.w}
+        //xmm3 = {v2.z, v2.x, v2.y, v2.w}
         //after multiplication
-        //xmm1 = {vect1.y * vect2.z, vect1.z * vect2.x, vect1.x * vect2.y, vect1.w * vect2.w}
+        //xmm1 = {v1.y * v2.z, v1.z * v2.x, v1.x * v2.y, v1.w * v2.w}
         mulps xmm1, xmm3
 
         //before multiplication
-        //xmm4 = {vect1.z, vect1.x, vect1.y, vect1.w}
-        //xmm5 = {vect2.y, vect2.z, vect2.x, vect2.w}
+        //xmm4 = {v1.z, v1.x, v1.y, v1.w}
+        //xmm5 = {v2.y, v2.z, v2.x, v2.w}
         //after multiplication
-        //xmm4 = {vect1.z * vect2.y, vect1.x * vect2.z, vect1.y * vect2.x, vect1.w * vect2.w}
+        //xmm4 = {v1.z * v2.y, v1.x * v2.z, v1.y * v2.x, v1.w * v2.w}
         mulps xmm4, xmm5
 
         //before subtraction
-        //xmm1 = {vect1.y * vect2.z, vect1.z * vect2.x, vect1.x * vect2.y, vect1.w * vect2.w}
-        //xmm4 = {vect1.z * vect2.y, vect1.x * vect2.z, vect1.y * vect2.x, vect1.w * vect2.w}
+        //xmm1 = {v1.y * v2.z, v1.z * v2.x, v1.x * v2.y, v1.w * v2.w}
+        //xmm4 = {v1.z * v2.y, v1.x * v2.z, v1.y * v2.x, v1.w * v2.w}
         //after subtraction
-        //xmm1 = {(vect1.y * vect2.z - vect1.z * vect2.y) , (vect1.z * vect2.x - vect1.x * vect2.z), (vect1.x * vect2.y - vect1.y * vect2.x) , 0}
+        //xmm1 = {(v1.y * v2.z - v1.z * v2.y) , (v1.z * v2.x - v1.x * v2.z), (v1.x * v2.y - v1.y * v2.x) , 0}
         subps xmm1, xmm4
 
-        //xmm0 = {(vect1.y * vect2.z - vect1.z * vect2.y) , (vect1.z * vect2.x - vect1.x * vect2.z), (vect1.x * vect2.y - vect1.y * vect2.x) , 0}
+        //xmm0 = {(v1.y * v2.z - v1.z * v2.y) , (v1.z * v2.x - v1.x * v2.z), (v1.x * v2.y - v1.y * v2.x) , 0}
         movaps xmm0, xmm1
 
-        //xmm0 = {(vect1.y * vect2.z - vect1.z * vect2.y) , (vect1.z * vect2.x - vect1.x * vect2.z), not used, not used}
-        //xmm1 = {(vect1.x * vect2.y - vect1.y * vect2.x) , 0, not used, not used}
+        //xmm0 = {(v1.y * v2.z - v1.z * v2.y) , (v1.z * v2.x - v1.x * v2.z), not used, not used}
+        //xmm1 = {(v1.x * v2.y - v1.y * v2.x) , 0, not used, not used}
         movhlps xmm1, xmm0
     end;
 end.
